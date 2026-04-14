@@ -88,13 +88,18 @@ parse_readme <- function(repo, user) {
   }
   res <- res$result
   res <- res[res != ""]
-  list(tolower(res))
+  res <- try(tolower(res), silent = TRUE)
+  if (inherits(res, "try-error")) {
+    res <- character(0)
+  }
+
+  list(res)
 }
 
 repo_info <- function(x, user, kw) {
   require(gh)
   require(tidyverse)
-
+  print(x$name)
   if (is.null(names(x))) {
     res <- tibble(
       repo = NA_character_,
@@ -218,5 +223,8 @@ kw_hits <- function(repos) {
 }
 
 num_old_repos <- function(repos, job_date) {
+  if (nrow(repos) == 0 | all(names(repos) != "created")) {
+    return(0L)
+  }
   repos |> dplyr::filter(created > job_date) |> nrow()
 }
