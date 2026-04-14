@@ -158,15 +158,6 @@ contribs_at_repo <- function(user, repos) {
     dplyr::relocate(any_py_repo_commits)
 }
 
-tm_keywords <- c(
-  "tune",
-  "caret",
-  "parsnip",
-  "recipes",
-  "torch",
-  "rsample"
-)
-
 kw_counts <- function(text, kw) {
   require(gh)
   require(tidyverse)
