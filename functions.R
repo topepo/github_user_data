@@ -99,7 +99,7 @@ parse_readme <- function(repo, user) {
 repo_info <- function(x, user, kw) {
   require(gh)
   require(tidyverse)
-  print(x$name)
+
   if (is.null(names(x))) {
     res <- tibble(
       repo = NA_character_,
@@ -167,9 +167,14 @@ kw_counts <- function(text, kw) {
   require(gh)
   require(tidyverse)
 
-  counts <- map_int(kw, ~ length(grep(.x, text)))
-  names(counts) <- paste0("kw_", gsub(" ", "_", kw))
-  tibble::as_tibble_row(counts)
+  if (length(kw) == 0) {
+    res <- tibble::tibble(kw_none = 0L)
+  } else {
+    counts <- map_int(kw, ~ length(grep(.x, text)))
+    names(counts) <- paste0("kw_", gsub(" ", "_", kw))
+    res <- tibble::as_tibble_row(counts)
+  }
+  res
 }
 
 not_forked <- function(x) {
@@ -227,4 +232,12 @@ num_old_repos <- function(repos, job_date) {
     return(0L)
   }
   repos |> dplyr::filter(created > job_date) |> nrow()
+}
+
+reassess_kw <- function(repos, kw) {
+  map_dfr(repos, ~ kw_counts(.x$readme, kw = kw)) |>
+    rowwise() |>
+    dplyr::mutate(kw_hits = sum(c_across(starts_with("kw_")))) |>
+    ungroup() |>
+    pluck("kw_hits")
 }
